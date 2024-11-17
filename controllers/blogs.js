@@ -1,16 +1,36 @@
 const jwt = require('jsonwebtoken')
 const router = require('express').Router()
+const { Op } = require('sequelize')
 
 const { Blog, User } = require('../models')
 const { SECRET } = require('../util/config')
 
 router.get('/', async (req, res) => {
+  const where = {}
+
+  /*if (req.query.search) {
+    where.title = {
+      [Op.iLike]: `%${req.query.search}%`
+    }
+  }*/
+
+  if (req.query.search) {
+    where[Op.or] = [
+      {title: { [Op.iLike]: `%${req.query.search}%` }},
+      {author: { [Op.iLike]: `%${req.query.search}%` }},
+    ]
+  }
+
   const blogs = await Blog.findAll({
     attributes: { exclude: ['userId'] },
     include: {
       model: User,
       attributes: ['name']
-    }
+    },
+    where,
+    order: [
+      ['likes', 'DESC']
+    ]
   })
   res.json(blogs)
 })
@@ -38,8 +58,6 @@ router.post('/', tokenExtractor, async (req, res) => {
   } catch(error) {
     return res.status(400).json({ error })
   }
-  // const blog = await Blog.create(req.body)
-  // res.json(blog)
 })
 
 const blogFinder = async (req, res, next) => {
@@ -64,7 +82,6 @@ router.delete('/:id', tokenExtractor, blogFinder, async (req, res) => {
     return res.status(204).end()
   }
   return res.status(401).json({ error: 'Permission denied' })
-  // res.status(204).end()
 })
 
 module.exports = router
