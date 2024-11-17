@@ -8,12 +8,6 @@ const { SECRET } = require('../util/config')
 router.get('/', async (req, res) => {
   const where = {}
 
-  /*if (req.query.search) {
-    where.title = {
-      [Op.iLike]: `%${req.query.search}%`
-    }
-  }*/
-
   if (req.query.search) {
     where[Op.or] = [
       {title: { [Op.iLike]: `%${req.query.search}%` }},
@@ -56,7 +50,7 @@ router.post('/', tokenExtractor, async (req, res) => {
     const blog = await Blog.create({...req.body, userId: user.id, date: new Date()})
     res.json(blog)
   } catch(error) {
-    return res.status(400).json({ error })
+    return res.status(400).json({ error: error.message })
   }
 })
 
