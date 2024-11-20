@@ -32,7 +32,12 @@ User.init({
   updated_at: {
     type: DataTypes.DATE,
     defaultValue: sequelize.fn('NOW')
-  }  
+  },
+  disabled: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  }
 }, {
   sequelize,
   timestamps: false,
